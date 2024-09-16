@@ -124,8 +124,9 @@ const (
 
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	Dependencies     []Dependency
-	ProcessingErrors []ElementError // jobs or files with errors may have incomplete results
+	Dependencies      []Dependency
+	NugetDependencies []Dependency
+	ProcessingErrors  []ElementError // jobs or files with errors may have incomplete results
 }
 
 // Dependency represents a dependency.
