@@ -314,7 +314,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(r.Dependencies)
+			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
@@ -1448,7 +1448,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(r.Dependencies)
+			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
@@ -1585,7 +1585,7 @@ func TestShellScriptDownload(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(r.Dependencies)
+			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, len(r.Dependencies))

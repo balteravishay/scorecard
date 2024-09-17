@@ -71,13 +71,15 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 }
 
 func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.PinningDependenciesData) error {
-	var csprojDeps, pinnedCsprojDeps = collectCsprojDependenciesData(c)
-
+	csprojDeps, pinnedCsprojDeps, err := collectCsprojDependenciesData(c)
+	if err != nil {
+		return err
+	}
 	// some csproj files are pinned, output these to the user
 	if pinnedCsprojDeps > 0 && pinnedCsprojDeps <= len(csprojDeps) {
 		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps...)
 	} else {
-		var allDependenciesArePinned = pinnedCsprojDeps == len(csprojDeps)
+		allDependenciesArePinned := pinnedCsprojDeps == len(csprojDeps)
 		return promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
 	}
 
@@ -85,7 +87,7 @@ func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.P
 }
 
 func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesData, updateDependencyPinning bool) error {
-	var nugetDeps = dependencies.GetStagedDependencies(checker.DependencyUseTypeNugetCommand)
+	nugetDeps := dependencies.GetStagedDependencies(checker.DependencyUseTypeNugetCommand)
 
 	// all csproj files are pinned, negate the pinned status of all nuget dependencies
 	if updateDependencyPinning {
@@ -99,14 +101,17 @@ func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesDat
 	return nil
 }
 
-func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int) {
+func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int, error) {
 	var csprojDeps []checker.Dependency
-	fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*.csproj",
 		CaseSensitive: false,
-	}, analyseCsprojLockedMode, &csprojDeps)
+	}, analyseCsprojLockedMode, &csprojDeps); err != nil {
+		return nil, 0, err
+	}
+
 	pinnedDependencies := countPinned(csprojDeps)
-	return csprojDeps, pinnedDependencies
+	return csprojDeps, pinnedDependencies, nil
 }
 
 func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
