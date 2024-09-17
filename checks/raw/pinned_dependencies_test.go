@@ -2084,3 +2084,69 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 		})
 	}
 }
+
+func TestCsProjAnalysis(t *testing.T) {
+	t.Parallel()
+
+	//nolint:govet
+	tests := []struct {
+		warns    int
+		err      error
+		name     string
+		filename string
+	}{
+		{
+			name:     "empty file",
+			filename: "./testdata/.github/workflows/dotnet-empty.csproj",
+		},
+		{
+			name:     "locked mode enabled",
+			filename: "./testdata/.github/workflows/dotnet-locked-mode-enabled.csproj",
+		},
+		{
+			name:     "locked mode disabled",
+			filename: "./testdata/.github/workflows/dotnet-locked-mode-disabled.csproj",
+		},
+		{
+			name:     "locked mode disabled implicitly",
+			filename: "./testdata/.github/workflows/dotnet-locked-mode-disbled-implicitly.csproj",
+		},
+		{
+			name:     "invalid file",
+			filename: "./testdata/.github/workflows/dotnet-invalid.csproj",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+			p = strings.Replace(p, "../testdata/", "", 1)
+
+			var r checker.PinningDependenciesData
+
+			_, err = analyseCsprojLockedMode(p, content, &r)
+			if !errCmp(err, tt.err) {
+				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+			}
+
+			if err != nil {
+				return
+			}
+
+			unpinned := countUnpinned(r.Dependencies)
+
+			if tt.warns != unpinned {
+				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			}
+		})
+	}
+}
