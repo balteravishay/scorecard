@@ -74,10 +74,10 @@ func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.P
 	var csprojDeps, pinnedCsprojDeps = collectCsprojDependenciesData(c)
 
 	// some csproj files are pinned, output these to the user
-	if pinnedCsprojDeps > 0 && pinnedCsprojDeps <= len(csprojDeps.Dependencies) {
-		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps.Dependencies...)
+	if pinnedCsprojDeps > 0 && pinnedCsprojDeps <= len(csprojDeps) {
+		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps...)
 	} else {
-		var allDependenciesArePinned = pinnedCsprojDeps == len(csprojDeps.Dependencies)
+		var allDependenciesArePinned = pinnedCsprojDeps == len(csprojDeps)
 		return promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
 	}
 
@@ -99,24 +99,29 @@ func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesDat
 	return nil
 }
 
-func collectCsprojDependenciesData(c *checker.CheckRequest) (checker.PinningDependenciesData, int) {
-	var csprojDeps checker.PinningDependenciesData
+func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int) {
+	var csprojDeps []checker.Dependency
 	fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*.csproj",
 		CaseSensitive: false,
 	}, analyseCsprojLockedMode, &csprojDeps)
-	pinnedDependencies := countPinned(csprojDeps.Dependencies)
+	pinnedDependencies := countPinned(csprojDeps)
 	return csprojDeps, pinnedDependencies
 }
 
 func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
-	pdata := dataAsPinnedDependenciesPointer(args[0])
+	pdata, ok := args[0].(*[]checker.Dependency)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
+	}
+
 	err, pinned := isRestoreLockedModeEnabled(content)
 	if err != nil {
 		return true, err
 	}
 
-	pdata.Dependencies = append(pdata.Dependencies,
+	*pdata = append(*pdata,
 		checker.Dependency{
 			Location: &checker.File{
 				Path:      path,
