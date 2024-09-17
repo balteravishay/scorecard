@@ -994,7 +994,7 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 
 	// Nuget install and restore
 	if isNuget(c) {
-		r.NugetDependencies = append(r.NugetDependencies,
+		r.StagedDependencies = append(r.StagedDependencies,
 			checker.Dependency{
 				Location: &checker.File{
 					Path:      pathfn,
