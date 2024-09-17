@@ -2097,23 +2097,28 @@ func TestCsProjAnalysis(t *testing.T) {
 	}{
 		{
 			name:     "empty file",
-			filename: "./testdata/.github/workflows/dotnet-empty.csproj",
+			filename: "./testdata/dotnet-empty.csproj",
+			err:      errInvalidCsProjFile,
 		},
 		{
 			name:     "locked mode enabled",
-			filename: "./testdata/.github/workflows/dotnet-locked-mode-enabled.csproj",
+			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
+			warns:    0,
 		},
 		{
 			name:     "locked mode disabled",
-			filename: "./testdata/.github/workflows/dotnet-locked-mode-disabled.csproj",
+			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
+			warns:    1,
 		},
 		{
 			name:     "locked mode disabled implicitly",
-			filename: "./testdata/.github/workflows/dotnet-locked-mode-disbled-implicitly.csproj",
+			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
+			warns:    1,
 		},
 		{
 			name:     "invalid file",
-			filename: "./testdata/.github/workflows/dotnet-invalid.csproj",
+			filename: "./testdata/dotnet-invalid.csproj",
+			err:      errInvalidCsProjFile,
 		},
 	}
 	for _, tt := range tests {
@@ -2131,7 +2136,7 @@ func TestCsProjAnalysis(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			p = strings.Replace(p, "../testdata/", "", 1)
 
-			var r checker.PinningDependenciesData
+			var r []checker.Dependency
 
 			_, err = analyseCsprojLockedMode(p, content, &r)
 			if !errCmp(err, tt.err) {
@@ -2142,7 +2147,7 @@ func TestCsProjAnalysis(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(r.Dependencies)
+			unpinned := countUnpinned(r)
 
 			if tt.warns != unpinned {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)

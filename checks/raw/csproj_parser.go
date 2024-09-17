@@ -2,7 +2,6 @@ package raw
 
 import (
 	"encoding/xml"
-	"errors"
 )
 
 type PropertyGroup struct {
@@ -20,7 +19,7 @@ func isRestoreLockedModeEnabled(content []byte) (error, bool) {
 
 	err := xml.Unmarshal(content, &project)
 	if err != nil {
-		return errors.New("error parsing csproj file"), false
+		return errInvalidCsProjFile, false
 	}
 
 	for _, propertyGroup := range project.PropertyGroups {
