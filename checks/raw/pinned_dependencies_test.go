@@ -2155,3 +2155,140 @@ func TestCsProjAnalysis(t *testing.T) {
 		})
 	}
 }
+
+func TestCollectInsecureNugetCsproj(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		filenames           []string
+		stagedDependencies  []checker.Dependency
+		outcomeDependencies []checker.Dependency
+		expectError         bool
+	}{
+		{
+			name:        "unpinned by command and 'locked mode' disabled implicitly",
+			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
+			expectError: false,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and 'locked mode' enabled",
+			filenames:   []string{"./dotnet-locked-mode-enabled.csproj"},
+			expectError: false,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type: checker.DependencyUseTypeNugetCommand,
+					Location: &checker.File{
+						Path:      "./dotnet-locked-mode-enabled.csproj",
+						Snippet:   "hello",
+						Offset:    1,
+						EndOffset: 1,
+						Type:      1,
+					},
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and 'locked mode' enabled and disabled in different csproj files",
+			filenames:   []string{"./dotnet-locked-mode-enabled.csproj", "./dotnet-locked-mode-disabled.csproj"},
+			expectError: false,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type: checker.DependencyUseTypeNugetCommand,
+					Location: &checker.File{
+						Path:      "./dotnet-locked-mode-enabled.csproj",
+						Snippet:   "hello",
+						Offset:    1,
+						EndOffset: 1,
+						Type:      1,
+					},
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+				{
+					Type: checker.DependencyUseTypeNugetCommand,
+					Location: &checker.File{
+						Path:      "./dotnet-locked-mode-disabled.csproj",
+						Snippet:   "hello",
+						Offset:    1,
+						EndOffset: 1,
+						Type:      1,
+					},
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "update your csproj to use RestoreLockedMode"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.filenames, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open(filepath.Join("testdata", file))
+			})
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+			r := checker.PinningDependenciesData{
+				StagedDependencies: tt.stagedDependencies,
+			}
+			err := collectInsecureNugetCsproj(&req, &r)
+			if err != nil {
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
+			}
+			t.Log(r.Dependencies)
+			for i := range tt.outcomeDependencies {
+				outcomeDependency := &tt.outcomeDependencies[i]
+				depend := &r.Dependencies[i]
+				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
+					t.Errorf("mismatch (-want +got):\n%s", diff)
+				}
+			}
+		})
+	}
+}

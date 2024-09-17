@@ -80,25 +80,25 @@ func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.P
 		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps...)
 	} else {
 		allDependenciesArePinned := pinnedCsprojDeps == len(csprojDeps)
-		return promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
+		promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
 	}
 
 	return nil
 }
 
-func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesData, updateDependencyPinning bool) error {
+func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesData, updateDependencyPinning bool) {
 	nugetDeps := dependencies.GetStagedDependencies(checker.DependencyUseTypeNugetCommand)
 
 	// all csproj files are pinned, negate the pinned status of all nuget dependencies
 	if updateDependencyPinning {
 		for i := 0; i < len(nugetDeps); i++ {
 			nugetDeps[i].Pinned = asBoolPointer(true)
+			nugetDeps[i].Remediation = nil
 		}
 	}
 
 	// add all NugetDependencies to Dependencies
 	dependencies.Dependencies = append(dependencies.Dependencies, nugetDeps...)
-	return nil
 }
 
 func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int, error) {
@@ -126,22 +126,25 @@ func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (
 		return true, err
 	}
 
-	*pdata = append(*pdata,
-		checker.Dependency{
-			Location: &checker.File{
-				Path:      path,
-				Type:      finding.FileTypeSource,
-				Offset:    1,
-				EndOffset: 1,
-				Snippet:   "hello",
-			},
-			Pinned: asBoolPointer(pinned),
-			Type:   checker.DependencyUseTypeNugetCommand,
-			Remediation: &finding.Remediation{
-				Text: "update your csproj to use RestoreLockedMode",
-			},
+	dependency := checker.Dependency{
+		Location: &checker.File{
+			Path:      path,
+			Type:      finding.FileTypeSource,
+			Offset:    1,
+			EndOffset: 1,
+			Snippet:   "hello",
 		},
-	)
+		Pinned: asBoolPointer(pinned),
+		Type:   checker.DependencyUseTypeNugetCommand,
+	}
+
+	if !pinned {
+		dependency.Remediation = &finding.Remediation{
+			Text: "update your csproj to use RestoreLockedMode",
+		}
+	}
+
+	*pdata = append(*pdata, dependency)
 	return true, nil
 }
 

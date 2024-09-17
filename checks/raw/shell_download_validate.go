@@ -1005,6 +1005,9 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 				},
 				Pinned: asBoolPointer(!isNugetUnpinned(c)),
 				Type:   checker.DependencyUseTypeNugetCommand,
+				Remediation: &finding.Remediation{
+					Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+				},
 			},
 		)
 
