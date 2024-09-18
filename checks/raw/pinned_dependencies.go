@@ -113,7 +113,7 @@ func analyseDirectoryPropsFile(path string, content []byte, args ...interface{})
 		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
 	}
 
-	err := analyseCentralPackageManagementPinned(path, content, pdata)
+	err := fileparser.AnalyseCentralPackageManagementPinned(path, content, pdata)
 	if err != nil {
 		return false, err
 	}

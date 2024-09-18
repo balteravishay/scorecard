@@ -22,4 +22,5 @@ var (
 	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
 	errInternalFilenameMatch = errors.New("filename match error")
 	errInvalidCsProjFile     = errors.New("error parsing csproj file")
+	errInvalidPropsFile      = errors.New("error parsing nuget props file")
 )

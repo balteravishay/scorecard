@@ -2311,3 +2311,98 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 		})
 	}
 }
+
+func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                 string
+		filename             string
+		pinnedDependencies   int
+		unpinnedDependencies int
+		expectedError        bool
+	}{
+		{
+			name:                 "Pinned dependencies",
+			filename:             "./testdata/Directory.Pinned.packages.props",
+			pinnedDependencies:   2,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Pinned multiple dependencies",
+			filename:             "./testdata/Directory.PinnedMultipleGroups.packages.props",
+			pinnedDependencies:   3,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned CPM false",
+			filename:             "./testdata/Directory.CPMFalse.packages.props",
+			pinnedDependencies:   0,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned CPM undeclared",
+			filename:             "./testdata/Directory.Undeclared.packages.props",
+			pinnedDependencies:   0,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version undeclared",
+			filename:             "./testdata/Directory.UndeclaredVersions.packages.props",
+			pinnedDependencies:   1,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version range",
+			filename:             "./testdata/Directory.UnpinnedVersions.packages.props",
+			pinnedDependencies:   1,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version range in second group",
+			filename:             "./testdata/Directory.UnpinnedMultipleGroups.packages.props",
+			pinnedDependencies:   2,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			content, err = os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+			var cpmDeps []checker.Dependency
+			_, err = analyseDirectoryPropsFile(tt.filename, content, &cpmDeps)
+			if err != nil {
+				if !tt.expectedError {
+					t.Errorf("unexpected error: %v", err)
+				}
+				return
+			}
+			pinned, unpinned := 0, 0
+			for _, dep := range cpmDeps {
+				if *dep.Pinned {
+					pinned++
+				} else {
+					unpinned++
+				}
+			}
+			if pinned != tt.pinnedDependencies {
+				t.Errorf("expected %v pinned dependencies. Got %v", tt.pinnedDependencies, pinned)
+			}
+			if unpinned != tt.unpinnedDependencies {
+				t.Errorf("expected %v unpinned dependencies. Got %v", tt.unpinnedDependencies, unpinned)
+			}
+		})
+	}
+}

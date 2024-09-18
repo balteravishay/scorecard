@@ -1,4 +1,4 @@
-package raw
+package fileparser
 
 import (
 	"encoding/xml"
@@ -31,7 +31,7 @@ type DirectoryPropsProject struct {
 	ItemGroups     []PackageVersionItemGroup `xml:"ItemGroup"`
 }
 
-func analyseCentralPackageManagementPinned(path string, content []byte, pdata *[]checker.Dependency) error {
+func AnalyseCentralPackageManagementPinned(path string, content []byte, pdata *[]checker.Dependency) error {
 	var project DirectoryPropsProject
 
 	err := xml.Unmarshal(content, &project)
@@ -88,6 +88,10 @@ func analyseCentralPackageManagementPinned(path string, content []byte, pdata *[
 		}
 	}
 	return nil
+}
+
+func asBoolPointer(b bool) *bool {
+	return &b
 }
 
 // isValidFixedVersion checks if the version string is a valid, fixed version.
