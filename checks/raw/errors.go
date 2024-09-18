@@ -25,4 +25,5 @@ var (
 	errInvalidArgLength          = errors.New("invalid arg length")
 	errInvalidGitHubWorkflow     = errors.New("invalid GitHub workflow")
 	errInvalidCsProjFile         = errors.New("error parsing csproj file")
+	errInvalidPropsFile          = errors.New("error parsing nuget props file")
 )

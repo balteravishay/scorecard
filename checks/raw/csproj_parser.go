@@ -4,18 +4,18 @@ import (
 	"encoding/xml"
 )
 
-type PropertyGroup struct {
+type RestoreLockedModePropertyGroup struct {
 	XMLName           xml.Name `xml:"PropertyGroup"`
 	RestoreLockedMode bool     `xml:"RestoreLockedMode"`
 }
 
-type Project struct {
-	XMLName        xml.Name        `xml:"Project"`
-	PropertyGroups []PropertyGroup `xml:"PropertyGroup"`
+type CSProjProject struct {
+	XMLName        xml.Name                         `xml:"Project"`
+	PropertyGroups []RestoreLockedModePropertyGroup `xml:"PropertyGroup"`
 }
 
 func isRestoreLockedModeEnabled(content []byte) (error, bool) {
-	var project Project
+	var project CSProjProject
 
 	err := xml.Unmarshal(content, &project)
 	if err != nil {

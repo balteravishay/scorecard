@@ -62,12 +62,61 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 	}
 
 	if isStagedNugetDepsUnpinned(&results) {
-		if err := collectInsecureNugetCsproj(c, &results); err != nil {
+		// check if Nuget dependencies are pinned using central package management
+		isCPM, err := collectNugetCentralPackageManagement(c, &results)
+		if err != nil {
 			return checker.PinningDependenciesData{}, err
+		}
+		// if not using central package management, check if the lockfile is used with csproj RestoreLockedMode
+		if !isCPM {
+			if err := collectInsecureNugetCsproj(c, &results); err != nil {
+				return checker.PinningDependenciesData{}, err
+			}
 		}
 	}
 
 	return results, nil
+}
+
+func collectNugetCentralPackageManagement(c *checker.CheckRequest,
+	dependencies *checker.PinningDependenciesData,
+) (bool, error) {
+	var cpmDeps []checker.Dependency
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "Directory.Packages.props",
+		CaseSensitive: false,
+	}, analyseDirectoryPropsFile, &cpmDeps); err != nil {
+		return false, err
+	}
+	// no Directory.Packages.props file found
+	if len(cpmDeps) == 0 {
+		return false, nil
+	} else {
+		pinned := countPinned(cpmDeps)
+		if pinned == len(cpmDeps) {
+			// all dependencies are pinned
+			dependencies.Dependencies = append(dependencies.Dependencies, cpmDeps...)
+			return true, nil
+		} else {
+			// Directory.Packages.props file found. add the dependencies to the results
+			dependencies.StagedDependencies = append(dependencies.StagedDependencies, cpmDeps...)
+			return false, nil
+		}
+	}
+}
+
+func analyseDirectoryPropsFile(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*[]checker.Dependency)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
+	}
+
+	err := analyseCentralPackageManagementPinned(path, content, pdata)
+	if err != nil {
+		return false, err
+	}
+	return false, nil
 }
 
 func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.PinningDependenciesData) error {
