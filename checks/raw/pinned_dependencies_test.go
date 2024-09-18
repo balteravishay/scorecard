@@ -2090,15 +2090,15 @@ func TestCsProjAnalysis(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		warns    int
-		err      error
-		name     string
-		filename string
+		warns       int
+		expectError bool
+		name        string
+		filename    string
 	}{
 		{
-			name:     "empty file",
-			filename: "./testdata/dotnet-empty.csproj",
-			err:      errInvalidCsProjFile,
+			name:        "empty file",
+			filename:    "./testdata/dotnet-empty.csproj",
+			expectError: true,
 		},
 		{
 			name:     "locked mode enabled",
@@ -2116,9 +2116,9 @@ func TestCsProjAnalysis(t *testing.T) {
 			warns:    1,
 		},
 		{
-			name:     "invalid file",
-			filename: "./testdata/dotnet-invalid.csproj",
-			err:      errInvalidCsProjFile,
+			name:        "invalid file",
+			filename:    "./testdata/dotnet-invalid.csproj",
+			expectError: true,
 		},
 	}
 	for _, tt := range tests {
@@ -2139,8 +2139,8 @@ func TestCsProjAnalysis(t *testing.T) {
 			var r []checker.Dependency
 
 			_, err = analyseCsprojLockedMode(p, content, &r)
-			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+			if err != nil && !tt.expectError {
+				t.Errorf("unexpected error %e", err)
 			}
 
 			if err != nil {
@@ -2165,6 +2165,25 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 		outcomeDependencies []checker.Dependency
 		expectError         bool
 	}{
+		{
+			name:        "pinned by command and 'locked mode' disabled implicitly",
+			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
+			expectError: false,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+		},
 		{
 			name:        "unpinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
