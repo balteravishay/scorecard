@@ -2090,7 +2090,7 @@ func TestCsProjAnalysis(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		warns       int
+		fixed       int
 		expectError bool
 		name        string
 		filename    string
@@ -2103,17 +2103,17 @@ func TestCsProjAnalysis(t *testing.T) {
 		{
 			name:     "locked mode enabled",
 			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
-			warns:    0,
+			fixed:    1,
 		},
 		{
 			name:     "locked mode disabled",
 			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
-			warns:    1,
+			fixed:    0,
 		},
 		{
 			name:     "locked mode disabled implicitly",
 			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
-			warns:    1,
+			fixed:    0,
 		},
 		{
 			name:        "invalid file",
@@ -2136,9 +2136,9 @@ func TestCsProjAnalysis(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			p = strings.Replace(p, "../testdata/", "", 1)
 
-			var r []checker.Dependency
+			var r []CsprojConfig
 
-			_, err = analyseCsprojLockedMode(p, content, &r)
+			_, err = processCsprojFile(p, content, &r)
 			if err != nil && !tt.expectError {
 				t.Errorf("unexpected error %e", err)
 			}
@@ -2147,10 +2147,10 @@ func TestCsProjAnalysis(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(r)
+			fixed := countFixedCsproj(r)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.fixed != fixed {
+				t.Errorf("expected %v. Got %v", tt.fixed, fixed)
 			}
 		})
 	}
@@ -2213,7 +2213,14 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			expectError: false,
 			stagedDependencies: []checker.Dependency{
 				{
-					Type:   checker.DependencyUseTypeNugetCommand,
+					Type: checker.DependencyUseTypeNugetCommand,
+					Location: &checker.File{
+						Path:      "./github/workflows/ci.yaml",
+						Snippet:   "hello",
+						Offset:    1,
+						EndOffset: 1,
+						Type:      1,
+					},
 					Pinned: boolAsPointer(false),
 					Remediation: &finding.Remediation{
 						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
@@ -2224,7 +2231,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 				{
 					Type: checker.DependencyUseTypeNugetCommand,
 					Location: &checker.File{
-						Path:      "./dotnet-locked-mode-enabled.csproj",
+						Path:      "./github/workflows/ci.yaml",
 						Snippet:   "hello",
 						Offset:    1,
 						EndOffset: 1,
@@ -2294,7 +2301,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			r := checker.PinningDependenciesData{
 				StagedDependencies: tt.stagedDependencies,
 			}
-			err := collectInsecureNugetCsproj(&req, &r)
+			err := postProcessNugetDependencies(&req, &r)
 			if err != nil {
 				if !tt.expectError {
 					t.Error(err.Error())
@@ -2320,53 +2327,61 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 		pinnedDependencies   int
 		unpinnedDependencies int
 		expectedError        bool
+		IsCPMEnabled         bool
 	}{
 		{
 			name:                 "Pinned dependencies",
 			filename:             "./testdata/Directory.Pinned.packages.props",
-			pinnedDependencies:   2,
+			IsCPMEnabled:         true,
+			pinnedDependencies:   1,
 			unpinnedDependencies: 0,
 			expectedError:        false,
 		},
 		{
 			name:                 "Pinned multiple dependencies",
 			filename:             "./testdata/Directory.PinnedMultipleGroups.packages.props",
-			pinnedDependencies:   3,
+			IsCPMEnabled:         true,
+			pinnedDependencies:   2,
 			unpinnedDependencies: 0,
 			expectedError:        false,
 		},
 		{
 			name:                 "Unpinned CPM false",
 			filename:             "./testdata/Directory.CPMFalse.packages.props",
+			IsCPMEnabled:         false,
 			pinnedDependencies:   0,
-			unpinnedDependencies: 1,
+			unpinnedDependencies: 0,
 			expectedError:        false,
 		},
 		{
 			name:                 "Unpinned CPM undeclared",
 			filename:             "./testdata/Directory.Undeclared.packages.props",
+			IsCPMEnabled:         false,
 			pinnedDependencies:   0,
-			unpinnedDependencies: 1,
+			unpinnedDependencies: 0,
 			expectedError:        false,
 		},
 		{
 			name:                 "Unpinned version undeclared",
 			filename:             "./testdata/Directory.UndeclaredVersions.packages.props",
-			pinnedDependencies:   1,
+			IsCPMEnabled:         true,
+			pinnedDependencies:   0,
 			unpinnedDependencies: 1,
 			expectedError:        false,
 		},
 		{
 			name:                 "Unpinned version range",
 			filename:             "./testdata/Directory.UnpinnedVersions.packages.props",
-			pinnedDependencies:   1,
+			IsCPMEnabled:         true,
+			pinnedDependencies:   0,
 			unpinnedDependencies: 1,
 			expectedError:        false,
 		},
 		{
 			name:                 "Unpinned version range in second group",
 			filename:             "./testdata/Directory.UnpinnedMultipleGroups.packages.props",
-			pinnedDependencies:   2,
+			IsCPMEnabled:         true,
+			pinnedDependencies:   1,
 			unpinnedDependencies: 1,
 			expectedError:        false,
 		},
@@ -2381,17 +2396,20 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			var cpmDeps []checker.Dependency
-			_, err = analyseDirectoryPropsFile(tt.filename, content, &cpmDeps)
-			if err != nil {
-				if !tt.expectedError {
-					t.Errorf("unexpected error: %v", err)
+			var nugetPostProcessData NugetPostProcessData
+			_, err = processDirectoryPropsFile(tt.filename, content, &nugetPostProcessData)
+			if tt.expectedError {
+				if err == nil {
+					t.Errorf("expected error is nil")
+					return
 				}
-				return
+			}
+			if tt.IsCPMEnabled != nugetPostProcessData.CpmConfig.IsCPMEnabled {
+				t.Errorf("expected %t cpm enabled. Got %t", tt.IsCPMEnabled, nugetPostProcessData.CpmConfig.IsCPMEnabled)
 			}
 			pinned, unpinned := 0, 0
-			for _, dep := range cpmDeps {
-				if *dep.Pinned {
+			for _, version := range nugetPostProcessData.CpmConfig.PackageVersions {
+				if version.IsFixed {
 					pinned++
 				} else {
 					unpinned++

@@ -61,79 +61,194 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
-	if isStagedNugetDepsUnpinned(&results) {
-		// check if Nuget dependencies are pinned using central package management
-		isCPM, err := collectNugetCentralPackageManagement(c, &results)
-		if err != nil {
-			return checker.PinningDependenciesData{}, err
-		}
-		// if not using central package management, check if the lockfile is used with csproj RestoreLockedMode
-		if !isCPM {
-			if err := collectInsecureNugetCsproj(c, &results); err != nil {
-				return checker.PinningDependenciesData{}, err
-			}
-		}
-	} else {
-		promoteStagedNugetDependencies(&results, false)
+	// Nuget Post Processing
+	if err := postProcessNugetDependencies(c, &results); err != nil {
+		return checker.PinningDependenciesData{}, err
 	}
+
 	return results, nil
 }
 
-func collectNugetCentralPackageManagement(c *checker.CheckRequest,
-	dependencies *checker.PinningDependenciesData,
-) (bool, error) {
-	var cpmDeps []checker.Dependency
-	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       "Directory.Packages.props",
-		CaseSensitive: false,
-	}, analyseDirectoryPropsFile, &cpmDeps); err != nil {
-		return false, err
+type CsprojConfig struct {
+	Path                       string
+	IsRestoreLockedModeEnabled bool
+}
+
+type NugetPostProcessData struct {
+	CsprojConfigs []CsprojConfig
+	CpmConfig     fileparser.CentralPackageManagementConfig
+}
+
+func postProcessNugetDependencies(c *checker.CheckRequest, dependencies *checker.PinningDependenciesData) error {
+	if !isNugetPostProcessingRequired(dependencies) {
+		promoteStagedNugetDependencies(dependencies, false)
+		return nil
 	}
-	// no Directory.Packages.props file found
-	if len(cpmDeps) == 0 {
-		return false, nil
+
+	var nugetPostProcessData NugetPostProcessData
+	if err := retrieveNugetCentralPackageManagement(c, &nugetPostProcessData); err != nil {
+		return err
+	}
+	if err := retrieveCsprojConfig(c, &nugetPostProcessData); err != nil {
+		return err
+	}
+
+	if nugetPostProcessData.CpmConfig.IsCPMEnabled {
+		collectPostProcessNugetCPMDependencies(dependencies, &nugetPostProcessData)
 	} else {
-		pinned := countPinned(cpmDeps)
-		if pinned == len(cpmDeps) {
-			// all dependencies are pinned
-			dependencies.Dependencies = append(dependencies.Dependencies, cpmDeps...)
-			return true, nil
-		} else {
-			// Directory.Packages.props file found. add the dependencies to the results
-			dependencies.StagedDependencies = append(dependencies.StagedDependencies, cpmDeps...)
-			return false, nil
+		collectPostProcessNugetCsprojDependencies(dependencies, &nugetPostProcessData)
+	}
+	return nil
+}
+
+func collectPostProcessNugetCsprojDependencies(dependencies *checker.PinningDependenciesData,
+	postProcessingData *NugetPostProcessData,
+) {
+	csprojConfigs := postProcessingData.CsprojConfigs
+	fixed := countFixedCsproj(csprojConfigs)
+	switch fixed {
+	case len(csprojConfigs):
+		promoteStagedNugetDependencies(dependencies, true)
+	case 0:
+		promoteStagedNugetDependencies(dependencies, false)
+	default:
+		for _, csproj := range csprojConfigs {
+			dependency := checker.Dependency{
+				Location: &checker.File{
+					Path:      csproj.Path,
+					Type:      finding.FileTypeSource,
+					Offset:    1,
+					EndOffset: 1,
+					Snippet:   "hello",
+				},
+				Pinned: asBoolPointer(csproj.IsRestoreLockedModeEnabled),
+				Type:   checker.DependencyUseTypeNugetCommand,
+			}
+
+			if !csproj.IsRestoreLockedModeEnabled {
+				dependency.Remediation = &finding.Remediation{
+					Text: "update your csproj to use RestoreLockedMode",
+				}
+			}
+
+			dependencies.Dependencies = append(dependencies.Dependencies, dependency)
 		}
 	}
 }
 
-func analyseDirectoryPropsFile(path string, content []byte, args ...interface{}) (bool, error) {
-	pdata, ok := args[0].(*[]checker.Dependency)
-	if !ok {
-		// panic if it is not correct type
-		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
+func countFixedCsproj(csprojConfigs []CsprojConfig) int {
+	count := 0
+	for _, csproj := range csprojConfigs {
+		if csproj.IsRestoreLockedModeEnabled {
+			count++
+		}
 	}
-
-	err := fileparser.AnalyseCentralPackageManagementPinned(path, content, pdata)
-	if err != nil {
-		return false, err
-	}
-	return false, nil
+	return count
 }
 
-func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.PinningDependenciesData) error {
-	csprojDeps, pinnedCsprojDeps, err := collectCsprojDependenciesData(c)
-	if err != nil {
-		return err
-	}
-	// some csproj files are pinned, output these to the user
-	if pinnedCsprojDeps > 0 && pinnedCsprojDeps <= len(csprojDeps) {
-		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps...)
+func collectPostProcessNugetCPMDependencies(dependencies *checker.PinningDependenciesData,
+	postProcessingData *NugetPostProcessData,
+) {
+	packageVersions := postProcessingData.CpmConfig.PackageVersions
+
+	fixed := countFixed(packageVersions)
+	if fixed == len(packageVersions) {
+		dependency := checker.Dependency{
+			Location: &checker.File{
+				Path:      "Directory.Packages.props",
+				Type:      finding.FileTypeSource,
+				Offset:    1,
+				EndOffset: 1,
+				Snippet:   "<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>",
+			},
+			Pinned: asBoolPointer(true),
+			Type:   checker.DependencyUseTypeNugetCommand,
+		}
+		// all dependencies are pinned
+		dependencies.Dependencies = append(dependencies.Dependencies, dependency)
 	} else {
-		allDependenciesArePinned := pinnedCsprojDeps == len(csprojDeps)
-		promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
+		for _, dep := range packageVersions {
+			dependency := checker.Dependency{
+				Location: &checker.File{
+					Path:      "Directory.Packages.props",
+					Type:      finding.FileTypeSource,
+					Offset:    1,
+					EndOffset: 1,
+					Snippet: fmt.Sprintf("<PackageVersion Include=\"%s\" Version=\"%s\" />",
+						dep.Name, dep.Version),
+				},
+				Pinned: &dep.IsFixed,
+				Type:   checker.DependencyUseTypeNugetCommand,
+			}
+			dependencies.Dependencies = append(dependencies.Dependencies, dependency)
+		}
+	}
+}
+
+func countFixed(packages []fileparser.NugetPackage) int {
+	count := 0
+	for _, dep := range packages {
+		if dep.IsFixed {
+			count++
+		}
+	}
+	return count
+}
+
+func retrieveNugetCentralPackageManagement(c *checker.CheckRequest, nugetPostProcessData *NugetPostProcessData) error {
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "Directory.Packages.props",
+		CaseSensitive: false,
+	}, processDirectoryPropsFile, nugetPostProcessData); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func processDirectoryPropsFile(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*NugetPostProcessData)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type NugetPostProcessData, got %v", reflect.TypeOf(args[0])))
+	}
+
+	cpmConfig, err := fileparser.GetCentralPackageManagementConfig(path, content)
+	if err != nil {
+		return false, err
+	}
+	pdata.CpmConfig = cpmConfig
+	return false, nil
+}
+
+func retrieveCsprojConfig(c *checker.CheckRequest, nugetPostProcessData *NugetPostProcessData) error {
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.csproj",
+		CaseSensitive: false,
+	}, processCsprojFile, &nugetPostProcessData.CsprojConfigs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func processCsprojFile(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*[]CsprojConfig)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type []CsprojConfig, got %v", reflect.TypeOf(args[0])))
+	}
+
+	err, pinned := fileparser.IsRestoreLockedModeEnabled(content)
+	if err != nil {
+		return true, err
+	}
+
+	*pdata = append(*pdata, CsprojConfig{
+		Path:                       path,
+		IsRestoreLockedModeEnabled: *asBoolPointer(pinned),
+	})
+	return true, nil
 }
 
 func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesData, updateDependencyPinning bool) {
@@ -151,69 +266,19 @@ func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesDat
 	dependencies.Dependencies = append(dependencies.Dependencies, nugetDeps...)
 }
 
-func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int, error) {
-	var csprojDeps []checker.Dependency
-	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       "*.csproj",
-		CaseSensitive: false,
-	}, analyseCsprojLockedMode, &csprojDeps); err != nil {
-		return nil, 0, err
+func isNugetPostProcessingRequired(dependencies *checker.PinningDependenciesData) bool {
+	nugetDeps := dependencies.GetStagedDependencies(checker.DependencyUseTypeNugetCommand)
+
+	if len(nugetDeps) == 0 {
+		return false
 	}
 
-	pinnedDependencies := countPinned(csprojDeps)
-	return csprojDeps, pinnedDependencies, nil
-}
-
-func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
-	pdata, ok := args[0].(*[]checker.Dependency)
-	if !ok {
-		// panic if it is not correct type
-		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
-	}
-
-	err, pinned := fileparser.IsRestoreLockedModeEnabled(content)
-	if err != nil {
-		return true, err
-	}
-
-	dependency := checker.Dependency{
-		Location: &checker.File{
-			Path:      path,
-			Type:      finding.FileTypeSource,
-			Offset:    1,
-			EndOffset: 1,
-			Snippet:   "hello",
-		},
-		Pinned: asBoolPointer(pinned),
-		Type:   checker.DependencyUseTypeNugetCommand,
-	}
-
-	if !pinned {
-		dependency.Remediation = &finding.Remediation{
-			Text: "update your csproj to use RestoreLockedMode",
-		}
-	}
-
-	*pdata = append(*pdata, dependency)
-	return true, nil
-}
-
-func countPinned(dependencies []checker.Dependency) int {
-	count := 0
-	for _, dep := range dependencies {
-		if *dep.Pinned {
-			count++
-		}
-	}
-	return count
-}
-
-func isStagedNugetDepsUnpinned(dependencies *checker.PinningDependenciesData) bool {
-	for _, dep := range dependencies.StagedDependencies {
-		if dep.Type == checker.DependencyUseTypeNugetCommand && !*dep.Pinned {
+	for _, dep := range nugetDeps {
+		if !*dep.Pinned {
 			return true
 		}
 	}
+
 	return false
 }
 

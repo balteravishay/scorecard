@@ -2,11 +2,7 @@ package fileparser
 
 import (
 	"encoding/xml"
-	"fmt"
 	"regexp"
-
-	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/finding"
 )
 
 type CPMPropertyGroup struct {
@@ -31,67 +27,58 @@ type DirectoryPropsProject struct {
 	ItemGroups     []PackageVersionItemGroup `xml:"ItemGroup"`
 }
 
-func AnalyseCentralPackageManagementPinned(path string, content []byte, pdata *[]checker.Dependency) error {
+type NugetPackage struct {
+	Name    string
+	Version string
+	IsFixed bool
+}
+
+type CentralPackageManagementConfig struct {
+	PackageVersions []NugetPackage
+	IsCPMEnabled    bool
+}
+
+func GetCentralPackageManagementConfig(path string, content []byte) (CentralPackageManagementConfig, error) {
 	var project DirectoryPropsProject
 
 	err := xml.Unmarshal(content, &project)
 	if err != nil {
-		return errInvalidPropsFile
+		return CentralPackageManagementConfig{}, errInvalidPropsFile
 	}
-	for _, propertyGroup := range project.PropertyGroups {
-		if propertyGroup.ManagePackageVersionsCentrally {
-			dependency := checker.Dependency{
-				Location: &checker.File{
-					Path:      path,
-					Type:      finding.FileTypeSource,
-					Offset:    1,
-					EndOffset: 1,
-					Snippet:   "<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>",
-				},
-				Pinned: asBoolPointer(true),
-				Type:   checker.DependencyUseTypeNugetCommand,
-			}
-			*pdata = append(*pdata, dependency)
-		}
+
+	cpmConfig := CentralPackageManagementConfig{
+		IsCPMEnabled: isCentralPackageManagementEnabled(&project),
 	}
-	if len(*pdata) == 0 {
-		dependency := checker.Dependency{
-			Location: &checker.File{
-				Path:      path,
-				Type:      finding.FileTypeSource,
-				Offset:    1,
-				EndOffset: 1,
-				Snippet:   "<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>",
-			},
-			Pinned: asBoolPointer(false),
-			Type:   checker.DependencyUseTypeNugetCommand,
-		}
-		*pdata = append(*pdata, dependency)
-		return nil
+
+	if cpmConfig.IsCPMEnabled {
+		cpmConfig.PackageVersions = extractNugetPackages(&project)
 	}
-	for _, itemGroup := range project.ItemGroups {
-		for _, packageVersion := range itemGroup.PackageVersion {
-			pinned := isValidFixedVersion(packageVersion.Version)
-			dependency := checker.Dependency{
-				Location: &checker.File{
-					Path:      path,
-					Type:      finding.FileTypeSource,
-					Offset:    1,
-					EndOffset: 1,
-					Snippet: fmt.Sprintf("<PackageVersion Include=\"%s\" Version=\"%s\" />",
-						packageVersion.Include, packageVersion.Version),
-				},
-				Pinned: asBoolPointer(pinned),
-				Type:   checker.DependencyUseTypeNugetCommand,
-			}
-			*pdata = append(*pdata, dependency)
-		}
-	}
-	return nil
+
+	return cpmConfig, nil
 }
 
-func asBoolPointer(b bool) *bool {
-	return &b
+func isCentralPackageManagementEnabled(project *DirectoryPropsProject) bool {
+	for _, propertyGroup := range project.PropertyGroups {
+		if propertyGroup.ManagePackageVersionsCentrally {
+			return true
+		}
+	}
+
+	return false
+}
+
+func extractNugetPackages(project *DirectoryPropsProject) []NugetPackage {
+	var nugetPackages []NugetPackage
+	for _, itemGroup := range project.ItemGroups {
+		for _, packageVersion := range itemGroup.PackageVersion {
+			nugetPackages = append(nugetPackages, NugetPackage{
+				Name:    packageVersion.Include,
+				Version: packageVersion.Version,
+				IsFixed: isValidFixedVersion(packageVersion.Version),
+			})
+		}
+	}
+	return nugetPackages
 }
 
 // isValidFixedVersion checks if the version string is a valid, fixed version.
