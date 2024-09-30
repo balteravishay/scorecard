@@ -53,54 +53,25 @@ Except for Pinned-Dependencies and Packaging checks, that are ecosystem-specific
 
 Name        | Description                               | Risk Level | Ecosystem dependency  | 
 ----------- | ----------------------------------------- | ---------- | --------------- |
-Binary-Artifacts
-Is the project free of checked-in binaries?	High			No
-Branch-Protection
-Does the project use Branch Protection ?
-High			No
-CI-Tests
-Does the project run tests in CI, e.g. GitHub Actions, Prow?
-Low			No
-CII-Best-Practices
-Has the project earned an OpenSSF (formerly CII) Best Practices Badge at the passing, silver, or gold level?	Low			No
-Code-Review
-Does the project practice code review before code is merged?	High			No
-Contributors
-Does the project have contributors from at least two different organizations?	Low			No
-Dangerous-Workflow
-Does the project avoid dangerous coding patterns in GitHub Action workflows?	Critical			No
-Dependency-Update-Tool
-Does the project use tools to help update its dependencies?	High			No
-Fuzzing
-Does the project use fuzzing tools, e.g. OSS-Fuzz, QuickCheck or fast-check?
-Medium			No
-License
-Does the project declare a license?	Low			No
-Maintained
-Is the project at least 90 days old, and maintained?	High			No
-Pinned-Dependencies
-Does the project declare and pin dependencies?
-Medium			Yes
-Packaging
-Does the project build and publish official packages from CI/CD, e.g. GitHub Publishing ?
-Medium			Yes
-SAST
-Does the project use static code analysis tools, e.g. CodeQL, LGTM (deprecated), SonarCloud?
-Medium			No
-Security-Policy
-Does the project contain a security policy?
-Medium			No
-Signed-Releases
-Does the project cryptographically sign releases?
-High			No
-Token-Permissions
-Does the project declare GitHub workflow tokens as read only?
-High			No
-Vulnerabilities
-Does the project have unfixed vulnerabilities? Uses the OSV service.
-High			No
-Webhooks
-Does the webhook defined in the repository have a token configured to authenticate the origins of requests?	Critical			No
+Binary-Artifacts | Is the project free of checked-in binaries? | High |	No
+Branch-Protection | Does the project use Branch Protection? High	No
+CI-Tests | Does the project run tests in CI, e.g. GitHub Actions, Prow? Low No
+CII-Best-Practices | Has the project earned an OpenSSF (formerly CII) Best Practices Badge at the passing, silver, or gold level?	Low			No
+Code-Review | Does the project practice code review before code is merged?	High			No
+Contributors | Does the project have contributors from at least two different organizations?	Low			No
+Dangerous-Workflow | Does the project avoid dangerous coding patterns in GitHub Action workflows?	Critical			No 
+Dependency-Update-Tool | Does the project use tools to help update its dependencies?	High			No
+Fuzzing | Does the project use fuzzing tools, e.g. OSS-Fuzz, QuickCheck or fast-check? Medium			No
+License | Does the project declare a license?	Low			No
+Maintained | Is the project at least 90 days old, and maintained?	High			No
+Pinned-Dependencies | Does the project declare and pin dependencies? Medium			Yes
+Packaging | Does the project build and publish official packages from CI/CD, e.g. GitHub Publishing Medium			Yes
+SAST | Does the project use static code analysis tools, e.g. CodeQL, LGTM (deprecated), SonarCloud? Medium			No
+Security-Policy | Does the project contain a security policy? Medium			No
+Signed-Releases | Does the project cryptographically sign releases? High			No
+Token-Permissions | Does the project declare GitHub workflow tokens as read only? High			No
+Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the OSV service. High			No
+Webhooks | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?	Critical			No
 
 
 # What is supported for .NET/NuGet
