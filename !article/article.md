@@ -139,19 +139,21 @@ On GitHub, there are over 1,000 C# and F# repositories with more than 1,500 star
 
 The diagram below displays the average scores for all Scorecard checks for those repositories. Please note that scores below zero are not relevant and may indicate an error during the Scorecard check execution.
 
-----add image
+![average](./average-scores.png)
 
 It’s especially noteworthy to look at the most critical security check, Dangerous Workflows. In this case, the check either receives a perfect score of 10 or identifies an error, which occurs in over 250 repositories. This reveals existing security gaps and highlights opportunities for improvement to strengthen overall security.
 
-----add image
+![dangerous-workflow](./dangerous-workflow.png)
  
 Moreover, the pinned dependency scores show a gap in support for the NuGet ecosystem that should be improved given the recent work that was done. As these features were newly released at the time this article was written, the change in score is still not visible. There is a similar gap in support for packaging that can be better addressed by Scorecard to further detect the NuGet ecosystem.
 
- ----add image
+![pinned-dependencies](./pinned-dependencies.png)
+![packaging](./packaging.png)
+
  
 Other checks illustrated below, which are not tied to specific ecosystems and rely solely on GitHub APIs, highlight low-hanging fruit opportunities for .NET ecosystem maintainers to make improvements and enhance open-source security.
  
- ----add image
+ ----add rest of the images
 
   
 # Recommendations and action items
