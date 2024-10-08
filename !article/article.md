@@ -1,5 +1,5 @@
 # Introduction
-OpenSSF Scorecard is a tool developed by the Open Source Security Foundation (OpenSSF) that provides automated security assessments for open-source projects. The primary goal of the Scorecard project is to help developers and users determine the security posture of open-source software by generating a "scorecard" based on a series of security-related checks. 
+OpenSSF Scorecard is a tool developed by the Open Source Security Foundation (OpenSSF) that provides automated security assessments for open-source projects. The primary goal of the Scorecard project is to help developers and users determine the security posture of open-source software by generating a **score** based on a series of security-related checks. 
 
 Using Scorecard, developers can assess the risks associated with each check and make informed decisions about accepting these risks, evaluating alternative solutions, or making improvements. 
 Additionally, a company’s Open Source Program Office (OSPO) can utilize the tool at an organizational level to assess the scores of their owned repositories, as is the case with the Microsoft OSPO.
@@ -9,8 +9,11 @@ The image below illustrates the score of a Microsoft owned repository.
 --- add image
  
 # Content
-This article covers:
--	TODO: Once we agree on a final form add a paragraph with what we will cover in the article
+This article is specifically aimed at .NET maintainers, showcasing how Scorecard and its recently introduced support for .NET can help enhance both the security and quality of the ecosystem. 
+
+It explores the implications of this support, identifies gaps where maintainers can contribute to further improve Scorecard and shares insights from our research on the .NET open-source ecosystem, revealing several low-hanging fruits that maintainers should address to strengthen the security of their projects. 
+
+We believe that by focusing on these areas, we, as .NET developers, can bring a significant enhancement to our community's security posture and contribute to a more secure open-source ecosystem.
 
 # What is Scorecard and why should you use it
 Scorecard has the following key features:
