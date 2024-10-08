@@ -140,7 +140,7 @@ The diagram below displays the average scores for all Scorecard checks for those
 
 ![average](./average-scores.png)
 
-It’s especially noteworthy to look at the most critical security check, Dangerous Workflows. In this case, the check either receives a perfect score of 10 or identifies an error, which occurs in over 250 repositories. This reveals existing security gaps and highlights opportunities for improvement to strengthen overall security.
+It’s especially noteworthy to look at the most critical security check, Dangerous Workflows. In this case, the check either receives a perfect score of 10 or identifies an error, which occurs in over 250 repositories. This reveals existing support gaps and highlights opportunities to improve Scorecard by contributing to it.
 
 ![dangerous-workflow](./dangerous-workflow.png)
  
