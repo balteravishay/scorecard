@@ -48,34 +48,30 @@ Scorecard encourages project maintainers to adopt secure practices like branch p
 ### 7. Preventing Supply Chain Attacks
 A major concern in modern software development is the risk of supply chain attacks, where attackers compromise project dependencies or processes to inject malicious code. Scorecard assesses how effectively a project manages its dependencies, which is vital for preventing such attacks. Projects with strong scores in dependency management ensure that their dependencies are updated, verified, and secure, minimizing the risk of exploitation by malicious actors.
 
-
 # What are the checks run by Scorecard 
-The checks from the following table are all run against the target project by default. 
+The checks listed in the table below are automatically executed against a target project by default.
 
-Except for Pinned-Dependencies and Packaging checks, that are ecosystem-specific, the rest of the checks are run with the same criteria on every repository, regardless of the language used in the repo.
-
-Name        | Description                               | Risk Level | Ecosystem dependency  | 
------------ | ----------------------------------------- | ---------- | --------------- |
-Binary-Artifacts | Is the project free of checked-in binaries? | High |	No
-Branch-Protection | Does the project use Branch Protection? | High | No
-CI-Tests | Does the project run tests in CI, e.g. GitHub Actions, Prow? | Low | No
-CII-Best-Practices | Has the project earned an OpenSSF (formerly CII) Best Practices Badge at the passing, silver, or gold level? | Low	| No
-Code-Review | Does the project practice code review before code is merged? | High | No
-Contributors | Does the project have contributors from at least two different organizations? | Low | No
-Dangerous-Workflow | Does the project avoid dangerous coding patterns in GitHub Action workflows? | Critical | No 
-Dependency-Update-Tool | Does the project use tools to help update its dependencies? | High | No
-Fuzzing | Does the project use fuzzing tools, e.g. OSS-Fuzz, QuickCheck or fast-check? | Medium | No
-License | Does the project declare a license? | Low	| No
-Maintained | Is the project at least 90 days old, and maintained? |	High | No
-Pinned-Dependencies | Does the project declare and pin dependencies? | Medium | **Yes**
-Packaging | Does the project build and publish official packages from CI/CD, e.g. GitHub Publishing | Medium | **Yes**
-SAST | Does the project use static code analysis tools, e.g. CodeQL, LGTM (deprecated), SonarCloud? | Medium | No
-Security-Policy | Does the project contain a security policy? | Medium | No
-Signed-Releases | Does the project cryptographically sign releases? | High | No
-Token-Permissions | Does the project declare GitHub workflow tokens as read only? | High | No
-Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the OSV service. | High | No
-Webhooks | Does the webhook defined in the repository have a token configured to authenticate the origins of requests? | Critical | No
-
+Name        | Description                               | Risk Level |
+----------- | ----------------------------------------- | ---------- |
+Binary-Artifacts | Is the project free of checked-in binaries? | High
+Branch-Protection | Does the project use Branch Protection? | High
+CI-Tests | Does the project run tests in CI, e.g. GitHub Actions, Prow? | Low
+CII-Best-Practices | Has the project earned an OpenSSF (formerly CII) Best Practices Badge at the passing, silver, or gold level? | Low
+Code-Review | Does the project practice code review before code is merged? | High
+Contributors | Does the project have contributors from at least two different organizations? | Low
+Dangerous-Workflow | Does the project avoid dangerous coding patterns in GitHub Action workflows? | Critical
+Dependency-Update-Tool | Does the project use tools to help update its dependencies? | High
+Fuzzing | Does the project use fuzzing tools, e.g. OSS-Fuzz, QuickCheck or fast-check? | Medium
+License | Does the project declare a license? | Low
+Maintained | Is the project at least 90 days old, and maintained? |	High
+Pinned-Dependencies | Does the project declare and pin dependencies? | Medium
+Packaging | Does the project build and publish official packages from CI/CD, e.g. GitHub Publishing | Medium
+SAST | Does the project use static code analysis tools, e.g. CodeQL, LGTM (deprecated), SonarCloud? | Medium
+Security-Policy | Does the project contain a security policy? | Medium
+Signed-Releases | Does the project cryptographically sign releases? | High
+Token-Permissions | Does the project declare GitHub workflow tokens as read only? | High
+Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the OSV service. | High
+Webhooks | Does the webhook defined in the repository have a token configured to authenticate the origins of requests? | Critical
 
 # What is supported for .NET/NuGet
 For the past two years, Scorecard has started to implement dedicated support for projects within the .NET ecosystem, which use the NuGet package manager. The most recent features added are support for checking pinned dependencies when restoring packages using a lock file and when using Central Package Management.
