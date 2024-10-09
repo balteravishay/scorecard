@@ -94,7 +94,7 @@ In case your project receives a low score on this check, you can try the followi
 - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
 
 ## Pinned dependencies 
-For restoring NuGet packages, it is considered best practice to use Central Package Management (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while preventing “it works on my machine" issues.
+For restoring NuGet packages, it is considered best practice to use Central Package Management (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while also preventing counter dependency confusion (also known as substitution) attacks. These are supply chain attacks where a malicious package with the same name as an internal dependency is uploaded to a public repository, tricking systems into downloading and using it instead of the legitimate package.
 
 This Scorecard check aims to determine whether the project pins its dependencies during the build and release process. A "pinned dependency" refers to a dependency explicitly set to a specific hash, rather than allowing a mutable version or version range.
 
