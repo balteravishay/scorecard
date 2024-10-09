@@ -1,8 +1,8 @@
 # Introduction
-OpenSSF Scorecard is a tool developed by the Open Source Security Foundation (OpenSSF) that provides automated security assessments for open-source projects. The primary goal of the Scorecard project is to help developers and users determine the security posture of open-source software by generating a **score** based on a series of security-related checks. 
+[OpenSSF Scorecard](https://github.com/ossf/scorecard) is a tool developed by the Open Source Security Foundation (OpenSSF) that provides automated security assessments for open-source projects. The primary goal of the Scorecard project is to help developers and users determine the security posture of open-source software by generating a **score** based on a series of security-related checks. 
 
 Using Scorecard, developers can assess the risks associated with each check and make informed decisions about accepting these risks, evaluating alternative solutions, or making improvements. 
-Additionally, a company’s Open Source Program Office (OSPO) can utilize the tool at an organizational level to assess the scores of their owned repositories, as is the case with the Microsoft OSPO.
+Additionally, a company’s Open Source Program Office (OSPO) can [utilize the tool](https://openssf.org/blog/2022/09/29/how-ospos-can-be-a-key-lever-for-open-source-sustainability-and-security/) at an organizational level to assess the scores of their owned repositories, as is the case with the Microsoft OSPO.
 
 The image below illustrates the score of a Microsoft owned repository.
 
@@ -25,9 +25,9 @@ Scorecard has the following key features:
 
 Using the OSSF Scorecard for a project is important because it helps ensure that the open-source software you maintain follows essential security best practices. It can also be used to evaluate whether dependencies you take into your codebase meet your expected level of adherence to security practices. 
 
-Today, Scorecard is recognized and utilized across various sectors of the software engineering industry. For instance, it is mentioned in the Cybersecurity and Infrastructure Security Agency (CISA) Tools and Resources (OpenSSF Scorecard | CISA). Moreover, Sonatype, who specialize in software supply chain automation and security, references its checks and recommends its adoption in their annual reports. Google’s Open Source Insights (deps.dev) project highlights the scorecard checks of each package shown.
+Today, Scorecard is recognized and utilized across various sectors of the software engineering industry. For instance, it is mentioned in the Cybersecurity and Infrastructure Security Agency (CISA) [Tools and Resources](https://www.cisa.gov/resources-tools/services/openssf-scorecard). Moreover, Sonatype, who specialize in software supply chain automation and security, references its checks and recommends its adoption in their [annual reports](https://www.sonatype.com/hubfs/9th-Annual-SSSC-Report.pdf). Google’s [Open Source Insights](https://deps.dev/) project highlights the scorecard checks of each package shown.
 
-Here’s why it matters:
+This is why it matters:
 ### 1. Identifying Security Risks
 Open-source projects are widely used across industries but can be vulnerable to security risks if not properly managed. Scorecard helps identify these risks by evaluating key security practices such as dependency management, code reviews, and CI workflows, enabling developers to take proactive steps to enhance security and prevent incidents like data breaches or system compromises.
 ### 2. Improving Software Quality
@@ -74,31 +74,31 @@ Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the OSV se
 Webhooks | Does the webhook defined in the repository have a token configured to authenticate the origins of requests? | Critical
 
 # What is supported for .NET/NuGet
-For the past two years, Scorecard has started to implement dedicated support for projects within the .NET ecosystem, which use the NuGet package manager. The most recent features added are support for checking pinned dependencies when restoring packages using a lock file and when using Central Package Management.
+For the past two years, Scorecard has started to implement dedicated support for projects within the .NET ecosystem, which use the NuGet package manager. The most recent features added are support for checking pinned dependencies when restoring packages using a [lock file](https://devblogs.microsoft.com/nuget/enable-repeatable-package-restores-using-a-lock-file/#how-to-enable-the-lock-file) and when using [Central Package Management](https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management).
 
 ## Running Scorecard on a NuGet package
 You can run Scorecard with the repository name as the input (`--repo=[YOUR REPO NAME]`) or you can run it with the name of a NuGet package for one that is hosted on Nuget.org. To do that you need to specify the `--nuget` flag and provide the package name for which you want the corresponding GitHub source code to be checked.
 
 For example: `--nuget=Newtonsoft.Json`
 
-Note that this feature is only supported for packages that define the repository attribute in their  package metadata .nuspec file.
+Note that this feature is only supported for packages that define the [repository attribute](https://learn.microsoft.com/en-us/nuget/reference/nuspec#repository) in their package metadata `.nuspec` file.
 
 ## Packaging 
-This check evaluates whether the project is published as a package. Packages make it easier for users to download, install, update, and receive security patches via a package manager. The check currently looks for GitHub packaging workflows and language-specific GitHub Actions that upload the package to NuGet and other package managers. 
+This check evaluates whether the project is published as a package. Packages make it easier for users to download, install, update, and receive security patches via a package manager. The check currently looks for [GitHub packaging workflows](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to NuGet and other package managers. 
 
-Note that if a project uses different packaging tools, it may still receive a low score, as Scorecard can't detect all packaging methods. A low score doesn’t necessarily mean the project is at risk. If your packaging method isn’t recognized, consider opening an issue with the Scorecard maintainers. 
+Note that if a project uses different packaging tools, it may still receive a low score, as Scorecard can't detect all packaging methods. A low score doesn’t necessarily mean the project is at risk. If your packaging method isn’t recognized, consider [opening an issue](https://github.com/ossf/scorecard/issues/new/choose) with the Scorecard maintainers. 
 
 In case your project receives a low score on this check, you can try the following remediation steps:
 
-- Publish your project as a downloadable package, e.g., if hosted on GitHub, use GitHub's mechanisms for publishing a package.
+- Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
 - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
 
 ## Pinned dependencies 
-For restoring NuGet packages, it is considered best practice to use Central Package Management (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while also preventing counter dependency confusion (also known as substitution) attacks. These are supply chain attacks where a malicious package with the same name as an internal dependency is uploaded to a public repository, tricking systems into downloading and using it instead of the legitimate package.
+For restoring NuGet packages, it is considered best practice to use [Central Package Management](https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management) (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while also preventing counter dependency confusion (also known as substitution) attacks. These are supply chain attacks where a malicious package with the same name as an internal dependency is uploaded to a public repository, tricking systems into downloading and using it instead of the legitimate package.
 
 This Scorecard check aims to determine whether the project pins its dependencies during the build and release process. A "pinned dependency" refers to a dependency explicitly set to a specific hash, rather than allowing a mutable version or version range.
 
-The check typically identifies unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows used in the build and release stages of the project. For .NET/NuGet, Scorecard detects potential risks when installing or restoring NuGet packages without using Central Package Management or without specifying the locked mode flag either in the restore command or via the `RestorePackagesWithLockFile` attribute in all the .csproj files. 
+The check typically identifies unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows used in the build and release stages of the project. For .NET/NuGet, Scorecard detects potential risks when installing or restoring NuGet packages without using Central Package Management or without specifying the locked mode flag either in the restore command or via the [`RestorePackagesWithLockFile`](https://devblogs.microsoft.com/nuget/enable-repeatable-package-restores-using-a-lock-file/) attribute in all the `.csproj` files. 
 
 This makes sure the repository is either using the built-in security mechanism in nuget.org that cryptographically validates the dependencies you’re using (when using CPM), or that a lock file is used to do the same during build time.
 
@@ -122,15 +122,15 @@ msbuild.exe /t:restore
 
 Unless you either:
 - set `ManagePackageVersionsCentrally` to true in the `directory.*.props` file AND add a specific version to all included packages
-- set the` RestorePackagesWithLockFile` attribute to true in all .csproj files in the repository.
+- set the` RestorePackagesWithLockFile` attribute to true in all `.csproj` files in the repository.
 
 In case your project receives a low score on the pinned dependencies check, you can try the following remediation steps:
 
-- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. packages.config for NuGet).
-- If the package manager supports lock files (e.g. packages.lock.json  for NuGet), check these in the source code. The files maintain signatures for the entire dependency tree and prevent future exploitation in case the package is compromised.
-- For Dockerfiles, pin dependencies by hash as in this example. If using a manifest list, pin to the manifest list hash instead.
-- In GitHub workflows used in building and releasing your project, pin dependencies by hash. See main.yaml for example. To determine the permissions needed for your workflows and pin actions to commit SHAs, you may use StepSecurity's online tool.
-- To update dependencies after pinning, use tools such as Dependabot and Renovate bot.
+- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `packages.config` for NuGet).
+- If the package manager supports lock files (e.g. `packages.lock.json`  for NuGet), check these in the source code. The files maintain signatures for the entire dependency tree and prevent future exploitation in case the package is compromised.
+- For Dockerfiles, pin dependencies by hash as in this [example](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile). If using a manifest list, pin to the manifest list hash instead.
+- In GitHub workflows used in building and releasing your project, pin dependencies by hash. See [`main.yaml`](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows and pin actions to commit SHAs, you may use StepSecurity's [online tool](https://app.stepsecurity.io/secureworkflow/).
+- To update dependencies after pinning, use tools such as [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) and [Renovate bot](https://docs.renovatebot.com/configuration-options/).
 
 # An analysis of Scorecard checks for .NET open source repositories on GitHub
 
