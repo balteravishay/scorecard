@@ -103,7 +103,6 @@ The check typically identifies unpinned dependencies in Dockerfiles, shell scrip
 This makes sure the repository is either using the built-in security mechanism in nuget.org that cryptographically validates the dependencies you’re using (when using CPM), or that a lock file is used to do the same during build time.
 
 ### Examples:
-
 The following CLI commands will be marked as a pinned dependency:
 
 ```
@@ -148,12 +147,10 @@ Moreover, the pinned dependency scores show a gap in support for the NuGet ecosy
 
 ![pinned-dependencies](./pinned-dependencies.png)
 ![packaging](./packaging.png)
-
  
 Other checks illustrated below, which are not tied to specific ecosystems and rely solely on GitHub APIs, highlight low-hanging fruit opportunities for .NET ecosystem maintainers to make improvements and enhance open-source security.
  
  ----add rest of the images
-
   
 # Recommendations and action items
 With the recent improvements in handling pinned dependencies and packaging checks for the NuGet package manager, the ability to assess the security features of GitHub repositories in the .NET ecosystem will be substantially enhanced. This should encourage repositories’ maintainers to adopt necessary improvements, leading to higher scores measured by Scorecard and improved overall security.
@@ -162,8 +159,5 @@ In conclusion, regularly running OSSF Scorecard checks helps ensure your project
 
 Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps 😊
 
-
-# References (todo add more once we agree on a final version)
--	scorecard/docs/checks.md at main · ossf/scorecard (github.com)
--	How OSPOs Can Be a Key Lever for Open Source Sustainability and Security – Open Source Security Foundation (openssf.org)
--	9th-Annual-SSSC-Report.pdf (sonatype.com)
+# References and further reading
+- OpenSSF [Scorecard repository](https://github.com/ossf/scorecard)
