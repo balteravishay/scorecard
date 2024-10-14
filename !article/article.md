@@ -150,7 +150,7 @@ Moreover, the pinned dependency scores show a gap in support for the NuGet ecosy
 ![pinned-dependencies](./Scorecard-Pinned-Dependencies.png)
 ![packaging](./Scorecard-Packaging.png)
  
-Other checks illustrated below, which are not tied to specific ecosystems and rely solely on GitHub APIs, highlight low-hanging fruit opportunities for .NET ecosystem maintainers to make improvements and enhance open-source security.
+Other checks illustrated below, which are not tied to specific ecosystems and rely solely on GitHub APIs, highlight low-hanging fruit opportunities for .NET ecosystem maintainers to make improvements and enhance open-source security. Some of them like having branch protection mechanisms in place, have only read permissions for GH tokens, SAST (usage of static code analysis tools) and do code reviews would be easy to implement and have a big impact on the overall security of the repository.
  
 ![branch-protection](./Scorecard-Branch-Protection.png)
 ![token-permissions](./Scorecard-Token-Permissions.png)
