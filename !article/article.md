@@ -1,6 +1,8 @@
 # Introduction
 [OpenSSF Scorecard](https://github.com/ossf/scorecard) is a tool developed by the Open Source Security Foundation (OpenSSF) that provides automated security assessments for open-source projects. The primary goal of the Scorecard project is to help developers and users determine the security posture of open-source software by generating a **score** based on a series of security-related checks. 
 
+![nuget](./Scorecard-NuGet.png)
+
 Using Scorecard, developers can assess the risks associated with each check and make informed decisions about accepting these risks, evaluating alternative solutions, or making improvements. 
 Additionally, a company’s Open Source Program Office (OSPO) can [utilize the tool](https://openssf.org/blog/2022/09/29/how-ospos-can-be-a-key-lever-for-open-source-sustainability-and-security/) at an organizational level to assess the scores of their owned repositories, as is the case with the Microsoft OSPO.
 
@@ -137,27 +139,34 @@ On GitHub, there are over 1,000 C# and F# repositories with more than 1,500 star
 
 The diagram below displays the average scores for all Scorecard checks for those repositories. Please note that scores below zero are not relevant and may indicate an error during the Scorecard check execution.
 
-![average](./average-scores.png)
+![average](./Scorecard-Average-Scores.png)
 
 It’s especially noteworthy to look at the most critical security check, Dangerous Workflows. In this case, the check either receives a perfect score of 10 or identifies an error, which occurs in over 250 repositories. This reveals existing support gaps and highlights opportunities to improve Scorecard by contributing to it.
 
-![dangerous-workflow](./dangerous-workflow.png)
+![dangerous-workflow](./Scorecard-Dangerous-Workflows.png)
  
 Moreover, the pinned dependency scores show a gap in support for the NuGet ecosystem that should be improved given the recent work that was done. As these features were newly released at the time this article was written, the change in score is still not visible. There is a similar gap in support for packaging that can be better addressed by Scorecard to further detect the NuGet ecosystem.
 
-![pinned-dependencies](./pinned-dependencies.png)
-![packaging](./packaging.png)
+![pinned-dependencies](./Scorecard-Pinned-Dependencies.png)
+![packaging](./Scorecard-Packaging.png)
  
 Other checks illustrated below, which are not tied to specific ecosystems and rely solely on GitHub APIs, highlight low-hanging fruit opportunities for .NET ecosystem maintainers to make improvements and enhance open-source security.
  
- ----add rest of the images
-  
+![branch-protection](./Scorecard-Branch-Protection.png)
+![token-permissions](./Scorecard-Token-Permissions.png)
+![sast](./Scorecard-SAST.png)
+![code-reviews](./Scorecard-Code-Reviews.png)
+![mantained](./Scorecard-Mantained.png)
+![signed-release](./Scorecard-Signed-Release.png)
+![vulnerabilities](./Scorecard-Vulnerabilities.png)
+![binary-artifacts](./Scorecard-Binary-Artifacts.png)
+ 
 # Recommendations and action items
 With the recent improvements in handling pinned dependencies and packaging checks for the NuGet package manager, the ability to assess the security features of GitHub repositories in the .NET ecosystem will be substantially enhanced. This should encourage repositories’ maintainers to adopt necessary improvements, leading to higher scores measured by Scorecard and improved overall security.
 
 In conclusion, regularly running OSSF Scorecard checks helps ensure your project stays secure, up-to-date, and aligned with coding best practices. This proactive approach significantly reduces the risk of security vulnerabilities within your software ecosystem.
 
-Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps 😊
+Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps 😊.
 
 # References and further reading
 - OpenSSF [Scorecard repository](https://github.com/ossf/scorecard)
