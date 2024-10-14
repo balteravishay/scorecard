@@ -32,6 +32,7 @@ Today, Scorecard is recognized and utilized across various sectors of the softwa
 This is why it matters:
 ### 1. Identifying Security Risks
 Open-source projects are widely used across industries but can be vulnerable to security risks if not properly managed. Scorecard helps identify these risks by evaluating key security practices such as dependency management, code reviews, and CI workflows, enabling developers to take proactive steps to enhance security and prevent incidents like data breaches or system compromises.
+
 ### 2. Improving Software Quality
 Scorecard checks promote good development practices, such as enforcing code reviews, updating dependencies, and using security tools like fuzzing and static analysis, which enhance both security and code quality. By identifying gaps in these areas, Scorecard helps teams prioritize improvements and manage technical debt effectively.
 
@@ -134,7 +135,6 @@ In case your project receives a low score on the pinned dependencies check, you 
 - To update dependencies after pinning, use tools such as [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates) and [Renovate bot](https://docs.renovatebot.com/configuration-options/).
 
 # An analysis of Scorecard checks for .NET open source repositories on GitHub
-
 On GitHub, there are over 1,000 C# and F# repositories with more than 1,500 stars. Our team analyzed the Scorecard scores for these repositories using the public Scorecard API to get an ecosystem-wide view of the state of .NET open-source projects. 
 
 The diagram below displays the average scores for all Scorecard checks for those repositories. Please note that scores below zero are not relevant and may indicate an error during the Scorecard check execution.
@@ -168,5 +168,12 @@ In conclusion, regularly running OSSF Scorecard checks helps ensure your project
 
 Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps 😊.
 
-# References and further reading
+# References and future work
 - OpenSSF [Scorecard repository](https://github.com/ossf/scorecard)
+
+The following links capture open issues for extending Scorecard support:
+- [Add support for NuGet](https://github.com/ossf/scorecard/issues/1578) - over-arching issue tracking all ongoing work related to .NET/NuGet
+- [Support for Windows containers (and for Powershell in Dockerfiles)](https://github.com/ossf/scorecard/issues/3692)
+- [Checks should support Powershell scripts](https://github.com/ossf/scorecard/issues/4253)
+- [Pinned Dependency checks support for Azure DevOps Pipelines](https://github.com/ossf/scorecard/issues/4380) 
+- [Pinned Dependency checks for NuGet/.NET does not consider implicit restore](https://github.com/ossf/scorecard/issues/4381)
