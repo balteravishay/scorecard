@@ -4,11 +4,11 @@
 ![nuget](./Scorecard-NuGet.png)
 
 Using Scorecard, developers can assess the risks associated with each check and make informed decisions about accepting these risks, evaluating alternative solutions, or making improvements. 
-Additionally, a company’s Open Source Program Office (OSPO) can [utilize the tool](https://openssf.org/blog/2022/09/29/how-ospos-can-be-a-key-lever-for-open-source-sustainability-and-security/) at an organizational level to assess the scores of their owned repositories, as is the case with the Microsoft OSPO.
 
-The image below illustrates the score of a Microsoft owned repository.
+Moreover, while projects can use GitHub Actions to generate a scorecard for their specific project (the OSSF also generates scorecards on behalf of many popular open source projects), it's also possible for a security team or an Open Source Programs Office ([OSPO]((https://openssf.org/blog/2022/09/29/how-ospos-can-be-a-key-lever-for-open-source-sustainability-and-security/)) to generate the scorecards at scale. For example, at **Microsoft**, OSPO regularly computes scores for all public and private repositories, making historical information and trends available to teams.
+The image below illustrates the score of a Microsoft owned repository. Note that project owners can dig into all aspects of the scorecard, not just see the score.
 
---- add image
+![presidio](./Presidio-Score.png)
  
 # Content
 This article is specifically aimed at .NET maintainers, showcasing how Scorecard and its recently introduced support for .NET can help enhance both the security and quality of the ecosystem. 
@@ -97,7 +97,7 @@ In case your project receives a low score on this check, you can try the followi
 - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
 
 ## Pinned dependencies 
-For restoring NuGet packages, it is considered best practice to use [Central Package Management](https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management) (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while also preventing counter dependency confusion (also known as substitution) attacks. These are supply chain attacks where a malicious package with the same name as an internal dependency is uploaded to a public repository, tricking systems into downloading and using it instead of the legitimate package.
+For restoring NuGet packages, it is considered best practice to use [Central Package Management](https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management) (CPM) and/or a lock file to fully lock down the package dependency graph, ensuring consistent and repeatable builds while also preventing counter dependency confusion (also known as substitution) attacks. These are supply chain attacks where a malicious package with the same name as an internal dependency is uploaded to a public repository, tricking systems into downloading and using it instead of the legitimate package. More information can be found [here](https://learn.microsoft.com/en-us/nuget/concepts/security-best-practices#nuget-feeds).
 
 This Scorecard check aims to determine whether the project pins its dependencies during the build and release process. A "pinned dependency" refers to a dependency explicitly set to a specific hash, rather than allowing a mutable version or version range.
 
