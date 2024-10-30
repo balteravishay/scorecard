@@ -57,27 +57,34 @@ The checks listed in the table below are automatically executed against a target
 Name        | Description                               | Risk Level |
 ----------- | ----------------------------------------- | ---------- |
 Binary-Artifacts | Is the project free of checked-in binaries? | High
-Branch-Protection | Does the project use Branch Protection? | High
-CI-Tests | Does the project run tests in CI, e.g. GitHub Actions, Prow? | Low
-CII-Best-Practices | Has the project earned an OpenSSF (formerly CII) Best Practices Badge at the passing, silver, or gold level? | Low
+Branch-Protection | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches)? | High
+CI-Tests | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)? | Low
+CII-Best-Practices | Has the project earned an [OpenSSF (formerly CII) Best Practices Badge](https://www.bestpractices.dev) at the passing, silver, or gold level? | Low
 Code-Review | Does the project practice code review before code is merged? | High
 Contributors | Does the project have contributors from at least two different organizations? | Low
 Dangerous-Workflow | Does the project avoid dangerous coding patterns in GitHub Action workflows? | Critical
 Dependency-Update-Tool | Does the project use tools to help update its dependencies? | High
-Fuzzing | Does the project use fuzzing tools, e.g. OSS-Fuzz, QuickCheck or fast-check? | Medium
+Fuzzing | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz), [QuickCheck](https://hackage.haskell.org/package/QuickCheck) or [fast-check](https://fast-check.dev/)? | Medium
 License | Does the project declare a license? | Low
 Maintained | Is the project at least 90 days old, and maintained? |	High
-Pinned-Dependencies | Does the project declare and pin dependencies? | Medium
-Packaging | Does the project build and publish official packages from CI/CD, e.g. GitHub Publishing | Medium
-SAST | Does the project use static code analysis tools, e.g. CodeQL, LGTM (deprecated), SonarCloud? | Medium
-Security-Policy | Does the project contain a security policy? | Medium
-Signed-Releases | Does the project cryptographically sign releases? | High
-Token-Permissions | Does the project declare GitHub workflow tokens as read only? | High
-Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the OSV service. | High
+Pinned-Dependencies | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)? | Medium
+Packaging | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages)? | Medium
+SAST | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM (deprecated)](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? | Medium
+Security-Policy | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)? | Medium
+Signed-Releases | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)? | High
+Token-Permissions | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)? | High
+Vulnerabilities | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev)? | High
 Webhooks | Does the webhook defined in the repository have a token configured to authenticate the origins of requests? | Critical
 
 # What is supported for .NET/NuGet
 For the past two years, Scorecard has started to implement dedicated support for projects within the .NET ecosystem, which use the NuGet package manager. The most recent features added are support for checking pinned dependencies when restoring packages using a [lock file](https://devblogs.microsoft.com/nuget/enable-repeatable-package-restores-using-a-lock-file/#how-to-enable-the-lock-file) and when using [Central Package Management](https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management).
+
+We would like to extend a special *Thank you* to the team who implemented and coordinated these contributions:
+- [Avishay Balter](https://www.linkedin.com/in/avishay-balter/)
+- [Ioana Amarande](https://www.linkedin.com/in/ioana-amarande)
+- [Jon Douglas](https://www.linkedin.com/in/jon-douglas-9555572b)
+- [Liam Moat](https://www.linkedin.com/in/liammoatcom)
+- [Melanie Guittet](https://www.linkedin.com/in/melanie-guittet/)
 
 ## Running Scorecard on a NuGet package
 You can run Scorecard with the repository name as the input (`--repo=[YOUR REPO NAME]`) or you can run it with the name of a NuGet package for one that is hosted on Nuget.org. To do that you need to specify the `--nuget` flag and provide the package name for which you want the corresponding GitHub source code to be checked.
@@ -162,16 +169,15 @@ Other checks illustrated below, which are not tied to specific ecosystems and re
 ![binary-artifacts](./Scorecard-Binary-Artifacts.png)
  
 # Recommendations and action items
-With the recent improvements in handling pinned dependencies and packaging checks for the NuGet package manager, the ability to assess the security features of GitHub repositories in the .NET ecosystem will be substantially enhanced. This should encourage repositories’ maintainers to adopt necessary improvements, leading to higher scores measured by Scorecard and improved overall security.
+With the recent improvements in handling pinned dependencies and packaging checks for the NuGet package manager, the ability to assess the security features of GitHub repositories in the .NET ecosystem will be substantially enhanced. This should encourage repositories’ maintainers to adopt necessary improvements, leading to higher scores measured by Scorecard and improved overall security of the entire .NET ecosystem.
 
 In conclusion, regularly running OSSF Scorecard checks helps ensure your project stays secure, up-to-date, and aligned with coding best practices. This proactive approach significantly reduces the risk of security vulnerabilities within your software ecosystem.
 
-Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps 😊.
+Don’t delay! Check the Scorecard of your favorite GitHub repository today and if you’d like to improve the score, take a look at the suggested mitigation steps. Furthermore, if you are interested to contribute and enhance the Scorecard capabilities for the .NET ecosystem you can find ideas in the next section 😊.
+
 
 # References and future work
-- OpenSSF [Scorecard repository](https://github.com/ossf/scorecard)
-
-The following links capture open issues for extending Scorecard support:
+The following links capture open issues for extending the [OpenSSF Scorecard](https://github.com/ossf/scorecard) support for the .NET and NuGet ecosystem:
 
 - [Add support for NuGet](https://github.com/ossf/scorecard/issues/1578) - over-arching issue tracking all ongoing work related to .NET/NuGet
 - [Support for Windows containers (and for Powershell in Dockerfiles)](https://github.com/ossf/scorecard/issues/3692)
