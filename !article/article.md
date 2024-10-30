@@ -172,6 +172,7 @@ Don’t delay! Check the Scorecard of your favorite GitHub repository today and 
 - OpenSSF [Scorecard repository](https://github.com/ossf/scorecard)
 
 The following links capture open issues for extending Scorecard support:
+
 - [Add support for NuGet](https://github.com/ossf/scorecard/issues/1578) - over-arching issue tracking all ongoing work related to .NET/NuGet
 - [Support for Windows containers (and for Powershell in Dockerfiles)](https://github.com/ossf/scorecard/issues/3692)
 - [Checks should support Powershell scripts](https://github.com/ossf/scorecard/issues/4253)
